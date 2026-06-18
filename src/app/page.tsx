@@ -1,65 +1,94 @@
-import Image from "next/image";
+import { getDashboardData, applyToJob } from './actions'
 
-export default function Home() {
+export default async function DashboardPage() {
+  const { totalJobs, matchingJobs, appliedJobs, recentJobs } = await getDashboardData()
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="animate-fade-in">
+      <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
+        <div>
+          <h1>Dashboard</h1>
+          <p>Welcome back! The AI is actively scouting for jobs.</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <button className="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Manual Job Link
+        </button>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-6" style={{ marginBottom: '2rem' }}>
+        <div className="glass-card">
+          <h4 style={{ color: 'var(--text-secondary)' }}>Jobs Scraped</h4>
+          <h2>{totalJobs}</h2>
+          <span className="badge badge-success">+12% this week</span>
         </div>
-      </main>
+        <div className="glass-card">
+          <h4 style={{ color: 'var(--text-secondary)' }}>Matching Profiles</h4>
+          <h2>{matchingJobs}</h2>
+          <span className="badge badge-warning">Needs Review</span>
+        </div>
+        <div className="glass-card">
+          <h4 style={{ color: 'var(--text-secondary)' }}>Auto-Applied</h4>
+          <h2>{appliedJobs}</h2>
+          <span className="badge badge-accent">Active</span>
+        </div>
+      </div>
+      
+      <h3>Recent Matches</h3>
+      <div className="glass-card" style={{ marginTop: '1rem', padding: 0, overflow: 'hidden' }}>
+        {recentJobs.length === 0 ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            No jobs found in the database. 
+          </div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                <th style={{ padding: '1rem' }}>Company</th>
+                <th style={{ padding: '1rem' }}>Role</th>
+                <th style={{ padding: '1rem' }}>Match Score</th>
+                <th style={{ padding: '1rem' }}>Status</th>
+                <th style={{ padding: '1rem' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentJobs.map((job) => (
+                <tr key={job.id}>
+                  <td style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+                    <strong>{job.company}</strong>
+                  </td>
+                  <td style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>{job.role}</td>
+                  <td style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+                    <div className="flex items-center gap-2">
+                      <div style={{ flex: 1, height: 6, background: 'var(--bg-tertiary)', borderRadius: 3 }}>
+                        <div style={{ width: `${job.matchScore || 0}%`, height: '100%', background: job.matchScore && job.matchScore > 80 ? 'var(--success)' : 'var(--warning)', borderRadius: 3 }}></div>
+                      </div>
+                      <span style={{ fontSize: '0.85rem', color: job.matchScore && job.matchScore > 80 ? 'var(--success)' : 'var(--warning)' }}>{job.matchScore || 0}%</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+                    <span className={`badge ${job.status === 'APPLIED' ? 'badge-success' : job.status === 'FAILED' ? 'badge-warning' : 'badge-accent'}`}>
+                      {job.status}
+                    </span>
+                  </td>
+                  <td style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+                    <form action={async () => {
+                      'use server'
+                      await applyToJob(job.id)
+                    }}>
+                      <button className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} disabled={job.status === 'APPLIED'}>
+                        {job.status === 'APPLIED' ? 'Applied' : 'Review & Apply'}
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
-  );
+  )
 }
