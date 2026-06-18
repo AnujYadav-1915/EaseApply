@@ -1,4 +1,43 @@
+"use client";
+
+import { useState } from 'react';
+
 export default function UploadPage() {
+  const [isUploading, setIsUploading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    if (file.type !== 'application/pdf') {
+      setMessage('Please upload a PDF file.');
+      return;
+    }
+
+    setIsUploading(true);
+    setMessage('Parsing resume with AI...');
+
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('Upload failed');
+      
+      setMessage('Resume parsed and saved successfully! Check your Profile.');
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to parse resume.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       <div style={{ marginBottom: '2rem' }}>
@@ -12,13 +51,27 @@ export default function UploadPage() {
           <polyline points="17 8 12 3 7 8"/>
           <line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
-        <h3 style={{ marginBottom: '0.5rem' }}>Drag & Drop your Resume (PDF)</h3>
+        <h3 style={{ marginBottom: '0.5rem' }}>Upload your Resume (PDF)</h3>
         <p style={{ textAlign: 'center', maxWidth: '400px' }}>
-          We support PDF and Word documents. The system will automatically build your underlying JSON schema.
+          We currently support PDF documents. The system will automatically build your underlying JSON schema.
         </p>
-        <div style={{ marginTop: '1.5rem' }}>
-          <input type="file" id="resume-upload" style={{ display: 'none' }} accept=".pdf,.doc,.docx" />
-          <label htmlFor="resume-upload" className="btn btn-primary">Select File</label>
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <input 
+            type="file" 
+            id="resume-upload" 
+            style={{ display: 'none' }} 
+            accept=".pdf" 
+            onChange={handleFileChange}
+            disabled={isUploading}
+          />
+          <label htmlFor="resume-upload" className="btn btn-primary" style={{ cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}>
+            {isUploading ? 'Uploading...' : 'Select File'}
+          </label>
+          {message && (
+             <p style={{ marginTop: '1rem', color: message.includes('success') ? 'var(--success)' : 'var(--text-secondary)' }}>
+               {message}
+             </p>
+          )}
         </div>
       </div>
     </div>

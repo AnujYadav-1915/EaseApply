@@ -1,34 +1,79 @@
-import puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
+import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
+
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL || 'file:./dev.db',
+})
+const prisma = new PrismaClient({ adapter })
 
 export async function runAutomator(url: string) {
   console.log(`Starting automator for URL: ${url}`)
   try {
-    const browser = await puppeteer.launch({ headless: true })
+    const profile = await prisma.userProfile.findFirst()
+    if (!profile) {
+      return { success: false, error: 'User profile not found. Please setup profile first.' }
+    }
+
+    const nameParts = profile.fullName ? profile.fullName.split(' ') : ['First', 'Last'];
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+    const isLocal = !process.env.VERCEL_ENV;
+    
+    // For local dev, you usually point to your local Chrome installation.
+    // For Vercel, use sparticuz
+    const executablePath = isLocal 
+      ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Default Mac path for local testing
+      : await chromium.executablePath();
+
+    const browser = await puppeteer.launch({ 
+      args: isLocal ? puppeteer.defaultArgs() : chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+    });
+    
     const page = await browser.newPage()
     
-    // Simulate navigation
-    await page.goto(url, { waitUntil: 'networkidle2' }).catch(() => {
-        console.log("Could not navigate to URL, continuing simulation...")
+    console.log("Navigating to URL...");
+    await page.goto(url, { waitUntil: 'networkidle2' }).catch((e) => {
+        console.log("Navigation warning:", e.message)
     })
     
-    // Simulate some work
+    console.log("Attempting to fill generic form fields...");
+
+    const safeType = async (selector: string, text: string) => {
+      try {
+        const el = await page.$(selector);
+        if (el && text) {
+          await el.type(text);
+          console.log(`Filled ${selector}`);
+          return true;
+        }
+      } catch (e) {
+         // ignore
+      }
+      return false;
+    }
+
+    await safeType('input[name*="first" i]', firstName);
+    await safeType('input[name*="last" i]', lastName);
+    await safeType('input[name*="name" i]:not([name*="first"]):not([name*="last"])', profile.fullName || '');
+    await safeType('input[type="email"], input[name*="email" i]', profile.email);
+    await safeType('input[type="tel"], input[name*="phone" i]', profile.phoneNumber || '');
+    await safeType('input[name*="linkedin" i]', profile.linkedInUrl || '');
+    await safeType('input[name*="github" i], input[name*="portfolio" i]', profile.githubUrl || '');
+    
     await new Promise(resolve => setTimeout(resolve, 2000))
 
-    // TODO: In a real app, you would select the form fields and inject the user's profile data here.
-    // e.g. await page.type('input[name="firstName"]', profile.fullName)
-    
     await browser.close()
     
-    // Randomize success/failure for demonstration purposes
-    const isSuccess = Math.random() > 0.3
-    
-    if (isSuccess) {
-      return { success: true }
-    } else {
-      return { success: false, error: 'Failed to find apply button (Simulated Error)' }
-    }
+    return { success: true }
   } catch (error: any) {
     console.error("Automator error:", error)
     return { success: false, error: error.message }
   }
 }
+
