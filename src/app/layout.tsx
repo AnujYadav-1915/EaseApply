@@ -26,6 +26,7 @@ export default function RootLayout({
               <a href="/profile" className="btn btn-secondary" style={{ justifyContent: 'flex-start', border: 'none', backgroundColor: 'transparent' }}>Master Profile</a>
               <a href="/upload" className="btn btn-secondary" style={{ justifyContent: 'flex-start', border: 'none', backgroundColor: 'transparent' }}>Resume Engine</a>
               <a href="/manual-optimizer" className="btn btn-secondary" style={{ justifyContent: 'flex-start', border: 'none', backgroundColor: 'transparent' }}>Manual Optimizer</a>
+              <a href="/search" className="btn btn-secondary" style={{ justifyContent: 'flex-start', border: 'none', backgroundColor: 'transparent' }}>Job Search</a>
               <a href="#" className="btn btn-secondary" style={{ justifyContent: 'flex-start', border: 'none', backgroundColor: 'transparent' }}>Auto-Apply Logs</a>
             </nav>
           </aside>

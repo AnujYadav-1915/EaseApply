@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import OpenAI from 'openai';
 const pdf = require('pdf-parse');
 import { PrismaClient } from '@prisma/client';

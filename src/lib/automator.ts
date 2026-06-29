@@ -1,5 +1,4 @@
-import puppeteer from 'puppeteer-core'
-import chromium from '@sparticuz/chromium'
+import puppeteer from 'puppeteer';
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
@@ -20,22 +19,15 @@ export async function runAutomator(url: string) {
     const firstName = nameParts[0] || '';
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
-    const isLocal = !process.env.VERCEL_ENV;
-    
-    // For local dev, you usually point to your local Chrome installation.
-    // For Vercel, use sparticuz
-    const executablePath = isLocal 
-      ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Default Mac path for local testing
-      : await chromium.executablePath();
-      
-    const sparticuzArgs = await chromium.args;
-
     const launchOptions: any = { 
-      args: isLocal ? puppeteer.defaultArgs() : (sparticuzArgs as string[]),
-      defaultViewport: (chromium as any).defaultViewport,
-      executablePath,
-      headless: (chromium as any).headless,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      headless: true,
     };
+    
+    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+    
     const browser = await puppeteer.launch(launchOptions);
     
     const page = await browser.newPage()

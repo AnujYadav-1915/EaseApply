@@ -14,7 +14,7 @@ export default function ManualOptimizerPage() {
     try {
       // 1. Call OpenAI API to optimize the resume based on the JD
       // For this UI, we mock the baselineResume as we would normally pull it from the DB
-      const baselineResume = "Senior Software Engineer with 5 years of experience in React and Node.js. Built scalable web applications.";
+      const baselineResume = "Mock Profile Data"; // Trigger real profile DB fetch in the backend
       
       const optimizeRes = await fetch('/api/optimize', {
         method: 'POST',
@@ -113,13 +113,31 @@ export default function ManualOptimizerPage() {
               </div>
 
               <div style={{ marginTop: '1rem' }}>
-                <h4>Injected Keywords:</h4>
+                <h4>Injected Keywords (Missing from your baseline):</h4>
                 <div className="flex" style={{ flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  {result.skills?.slice(0, 8).map((skill: string) => (
-                    <span key={skill} className="badge badge-accent">{skill}</span>
+                  {result.feedback?.missingKeywords?.map((keyword: string) => (
+                    <span key={keyword} className="badge badge-accent">{keyword}</span>
                   ))}
                 </div>
               </div>
+
+              {result.feedback?.redFlags?.length > 0 && (
+                <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,50,50,0.1)', borderLeft: '4px solid #ff4444' }}>
+                  <h4 style={{ color: '#ff4444' }}>Red Flags Fixed:</h4>
+                  <ul style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#ff4444' }}>
+                    {result.feedback.redFlags.map((flag: string, i: number) => <li key={i}>{flag}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {result.feedback?.skippedSections?.length > 0 && (
+                <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,150,0,0.1)', borderLeft: '4px solid #ffaa00' }}>
+                  <h4 style={{ color: '#ffaa00' }}>Sections ATS Skipped:</h4>
+                  <ul style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#ffaa00' }}>
+                    {result.feedback.skippedSections.map((sec: string, i: number) => <li key={i}>{sec}</li>)}
+                  </ul>
+                </div>
+              )}
 
               <div className="flex gap-4" style={{ marginTop: '2rem' }}>
                 <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleDownloadPdf}>

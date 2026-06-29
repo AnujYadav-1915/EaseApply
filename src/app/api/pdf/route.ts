@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+export const dynamic = 'force-dynamic';
+import puppeteer from 'puppeteer';
 
 export async function POST(req: Request) {
   try {
@@ -84,19 +84,15 @@ export async function POST(req: Request) {
     </html>
     `;
 
-    const isLocal = !process.env.VERCEL_ENV;
-    const executablePath = isLocal 
-      ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-      : await chromium.executablePath();
-      
-    const sparticuzArgs = await chromium.args;
-
     const launchOptions: any = { 
-      args: isLocal ? puppeteer.defaultArgs() : (sparticuzArgs as string[]),
-      defaultViewport: (chromium as any).defaultViewport,
-      executablePath,
-      headless: (chromium as any).headless,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      headless: true,
     };
+    
+    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+    
     const browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
