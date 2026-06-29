@@ -29,7 +29,7 @@ export async function runAutomator(url: string) {
       : await chromium.executablePath();
 
     const browser = await puppeteer.launch({ 
-      args: isLocal ? puppeteer.defaultArgs() : chromium.args,
+      args: isLocal ? puppeteer.defaultArgs() : (await chromium.args) as string[],
       defaultViewport: chromium.defaultViewport,
       executablePath,
       headless: chromium.headless,
