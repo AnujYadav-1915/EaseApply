@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 export async function POST(req: Request) {
   try {
@@ -83,7 +84,17 @@ export async function POST(req: Request) {
     </html>
     `;
 
-    const browser = await puppeteer.launch({ headless: true });
+    const isLocal = !process.env.VERCEL_ENV;
+    const executablePath = isLocal 
+      ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+      : await chromium.executablePath();
+
+    const browser = await puppeteer.launch({ 
+      args: isLocal ? puppeteer.defaultArgs() : chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+    });
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
 
