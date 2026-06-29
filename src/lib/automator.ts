@@ -27,13 +27,16 @@ export async function runAutomator(url: string) {
     const executablePath = isLocal 
       ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Default Mac path for local testing
       : await chromium.executablePath();
+      
+    const sparticuzArgs = await chromium.args;
 
-    const browser = await puppeteer.launch({ 
-      args: isLocal ? puppeteer.defaultArgs() : (await chromium.args) as string[],
-      defaultViewport: chromium.defaultViewport,
+    const launchOptions: any = { 
+      args: isLocal ? puppeteer.defaultArgs() : (sparticuzArgs as string[]),
+      defaultViewport: (chromium as any).defaultViewport,
       executablePath,
-      headless: chromium.headless,
-    });
+      headless: (chromium as any).headless,
+    };
+    const browser = await puppeteer.launch(launchOptions);
     
     const page = await browser.newPage()
     

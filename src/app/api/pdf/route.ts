@@ -88,15 +88,18 @@ export async function POST(req: Request) {
     const executablePath = isLocal 
       ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
       : await chromium.executablePath();
+      
+    const sparticuzArgs = await chromium.args;
 
-    const browser = await puppeteer.launch({ 
-      args: isLocal ? puppeteer.defaultArgs() : (await chromium.args) as string[],
-      defaultViewport: chromium.defaultViewport,
+    const launchOptions: any = { 
+      args: isLocal ? puppeteer.defaultArgs() : (sparticuzArgs as string[]),
+      defaultViewport: (chromium as any).defaultViewport,
       executablePath,
-      headless: chromium.headless,
-    });
+      headless: (chromium as any).headless,
+    };
+    const browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
     // Ensure strict 1-page logic by adjusting zoom/scale until the height fits within a US Letter page (11 inches = ~1056px at 96dpi)
     const pdfBuffer = await page.pdf({
@@ -108,7 +111,7 @@ export async function POST(req: Request) {
 
     await browser.close();
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdfBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

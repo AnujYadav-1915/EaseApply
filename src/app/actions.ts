@@ -46,7 +46,6 @@ export async function saveUserProfile(formData: FormData) {
   }
 
   revalidatePath('/profile')
-  return { success: true }
 }
 
 // --- Dashboard Actions ---
