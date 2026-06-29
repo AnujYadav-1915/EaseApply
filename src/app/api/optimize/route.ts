@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing baselineResume or jobDescription' }, { status: 400 });
     }
 
-    const systemPrompt = \`
+    const systemPrompt = `
 You are an expert ATS Resume Optimizer and Senior Recruiter.
 Your goal is to rewrite a user's baseline resume to score 92+ on ATS scanners for a specific Job Description.
 
@@ -42,7 +42,7 @@ Return pure JSON matching this exact schema:
     { "institution": "...", "degree": "...", "dates": "..." }
   ]
 }
-\`;
+`;
 
     // Try to get real user profile if baselineResume is not provided
     let finalBaseline = baselineResume;
@@ -63,7 +63,7 @@ Return pure JSON matching this exact schema:
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: \`Baseline Resume:\\n\${finalBaseline}\\n\\nJob Description:\\n\${jobDescription}\` }
+        { role: "user", content: `Baseline Resume:\n${finalBaseline}\n\nJob Description:\n${jobDescription}` }
       ],
       response_format: { type: "json_object" },
       temperature: 0.2,
