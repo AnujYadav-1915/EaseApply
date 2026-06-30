@@ -72,8 +72,8 @@ Return pure JSON matching this exact schema:
     const optimizedResume = JSON.parse(response.choices[0].message.content || "{}");
     
     return NextResponse.json(optimizedResume);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Optimization error:", error);
-    return NextResponse.json({ error: 'Failed to optimize resume' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to optimize resume' }, { status: 500 });
   }
 }

@@ -26,13 +26,13 @@ export default function UploadPage() {
         method: 'POST',
         body: formData,
       });
-
-      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
       
       setMessage('Resume parsed and saved successfully! Check your Profile.');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      setMessage('Failed to parse resume.');
+      setMessage(error.message || 'Failed to parse resume.');
     } finally {
       setIsUploading(false);
     }

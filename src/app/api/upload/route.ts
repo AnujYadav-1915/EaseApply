@@ -92,8 +92,8 @@ Ensure it is strictly valid JSON.
     }
 
     return NextResponse.json({ success: true, data: extractedData });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Upload/Parsing error:", error);
-    return NextResponse.json({ error: 'Failed to process resume' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to process resume' }, { status: 500 });
   }
 }
