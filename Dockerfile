@@ -27,6 +27,10 @@ RUN npx prisma generate
 # Build Next.js application
 RUN npm run build
 
+# Standalone output requires static assets to be manually copied
+RUN cp -r public .next/standalone/public || true
+RUN cp -r .next/static .next/standalone/.next/static || true
+
 EXPOSE 3000
 
 ENV PORT=3000
